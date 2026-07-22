@@ -16,6 +16,7 @@ FROM alpine:latest
 WORKDIR /app
 RUN apk --no-cache add ca-certificates
 COPY --from=builder /app/backend .
+COPY --from=builder /app/public ./public  
 EXPOSE 3000
 CMD ["./backend"]
 
