@@ -34,17 +34,49 @@
 html, body {
   margin: 0;
   height: 100%;
+  /* The rubber-band / overscroll region exposes the html background, so paint it
+     with the app background (not the brand green) to keep pulls from feeling jarring. */
+  background: var(--bg);
 }
 
 body {
-  background: var(--bg);
   color: var(--text);
   font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
   -webkit-tap-highlight-color: transparent;
+  /* Suppress the browser's own pull-to-refresh; app.js provides a custom one. */
+  overscroll-behavior-y: contain;
 }
+
+/* Pull-to-refresh indicator: parked just above the viewport, slid down by app.js. */
+.ptr {
+  position: fixed;
+  top: env(safe-area-inset-top, 0px);
+  left: 0;
+  right: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-44px);
+  opacity: 0;
+  z-index: 5;
+  pointer-events: none;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.ptr-spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+}
+.ptr.refreshing .ptr-spinner {
+  animation: ptr-spin 0.8s linear infinite;
+}
+@keyframes ptr-spin { to { transform: rotate(360deg); } }
 
 /* Top bar */
 .topbar {
@@ -201,6 +233,8 @@ main {
   justify-content: center;
   flex: 1;
   word-break: break-word;
+  /* Keep intentional line breaks from multi-line cards while still wrapping. */
+  white-space: pre-wrap;
 }
 
 .card-back {
@@ -230,15 +264,11 @@ main {
 .empty p { margin: 4px 0; }
 
 /* Manage view */
+/* Front and back are stacked (each on its own row) so they can be roomy textareas. */
 .add-form {
   display: grid;
   gap: 8px;
   margin-bottom: 24px;
-}
-@media (min-width: 520px) {
-  .add-form {
-    grid-template-columns: 1fr 1fr auto;
-  }
 }
 
 .input {
@@ -248,10 +278,17 @@ main {
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
+  width: 100%;
 }
 .input:focus {
   outline: 2px solid var(--primary);
   border-color: var(--primary);
+}
+/* Multi-line front/back entry. */
+textarea.input {
+  resize: vertical;
+  min-height: 3.2em;
+  line-height: 1.4;
 }
 
 .card-list {
@@ -268,16 +305,16 @@ main {
   border-radius: 12px;
   padding: 12px 14px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
 }
 .card-item .texts { flex: 1; min-width: 0; }
 .card-item .front { font-weight: 600; }
 .card-item .back { color: var(--muted); font-size: 14px; }
 .card-item .front, .card-item .back {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* Wrap long cards instead of forcing a horizontal scroll on mobile. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .card-item .due {
   font-size: 12px;

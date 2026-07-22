@@ -3,7 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#78BC61" />
+  <!-- Match the app background (not the brand green) so the overscroll / rubber-band
+       area and status bar blend with the content instead of flashing green. -->
+  <meta name="theme-color" content="#eef6ea" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0e1510" media="(prefers-color-scheme: dark)" />
   <title>memoeyez</title>
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -12,6 +15,11 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
+  <!-- Pull-to-refresh indicator (mobile / PWA). Positioned/animated by app.js. -->
+  <div id="ptr" class="ptr" aria-hidden="true">
+    <div class="ptr-spinner"></div>
+  </div>
+
   <header class="topbar">
     <h1 class="brand">
       <img class="brand-logo" src="/logo.svg" alt="memoeyez" />
@@ -55,8 +63,8 @@
     <!-- MANAGE VIEW -->
     <section id="view-manage" class="view" hidden>
       <form id="add-form" class="add-form">
-        <input id="add-front" class="input" placeholder="Front (question)" autocomplete="off" required />
-        <input id="add-back" class="input" placeholder="Back (answer)" autocomplete="off" required />
+        <textarea id="add-front" class="input" rows="2" placeholder="Front (question)" autocomplete="off" required></textarea>
+        <textarea id="add-back" class="input" rows="2" placeholder="Back (answer)" autocomplete="off" required></textarea>
         <button class="btn btn-primary" type="submit">Add card</button>
       </form>
 

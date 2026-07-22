@@ -200,8 +200,8 @@ function editRow(c) {
   li.className = "card-item editing";
   li.innerHTML = `
     <div class="texts edit-fields">
-      <input class="input edit-front" />
-      <input class="input edit-back" />
+      <textarea class="input edit-front" rows="2"></textarea>
+      <textarea class="input edit-back" rows="2"></textarea>
     </div>
     <button class="icon-btn save" title="Save" aria-label="Save card">✓</button>
     <button class="icon-btn cancel" title="Cancel" aria-label="Cancel edit">✕</button>`;
@@ -227,8 +227,13 @@ function editRow(c) {
   li.querySelector(".save").addEventListener("click", save);
   li.querySelector(".cancel").addEventListener("click", cancel);
   li.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") save();
-    else if (e.key === "Escape") cancel();
+    // Plain Enter inserts a newline in the textareas; Cmd/Ctrl+Enter saves.
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      save();
+    } else if (e.key === "Escape") {
+      cancel();
+    }
   });
   // Focus the front field once the row is in the DOM.
   queueMicrotask(() => front.focus());
@@ -245,6 +250,14 @@ $("#add-form").addEventListener("submit", (e) => {
   $("#add-front").focus();
   renderManage();
   syncSoon();
+});
+
+// Plain Enter inserts a newline in the textareas; Cmd/Ctrl+Enter submits.
+$("#add-form").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+    e.preventDefault();
+    $("#add-form").requestSubmit();
+  }
 });
 
 // ---- Sync status indicator ----
@@ -277,6 +290,87 @@ async function runSync() {
 window.addEventListener("memoeyez:syncing", () => setStatus("syncing"));
 window.addEventListener("online", runSync);
 window.addEventListener("offline", () => setStatus("offline"));
+
+// ---- Pull to refresh (mobile / PWA) ----
+//
+// A drag downward while scrolled to the very top reveals a spinner; releasing past
+// the threshold runs a sync. The browser's native pull-to-refresh is disabled in CSS
+// (overscroll-behavior) so this is the only refresh gesture.
+
+const ptrEl = $("#ptr");
+const PTR_THRESHOLD = 64; // px of pull needed to trigger a refresh
+const PTR_MAX = 100; // px the spinner can travel
+let ptrStartY = 0;
+let ptrDist = 0;
+let ptrPulling = false;
+let ptrBusy = false;
+
+function docScrollTop() {
+  return window.scrollY || document.documentElement.scrollTop || 0;
+}
+
+function resetPtr() {
+  ptrPulling = false;
+  ptrDist = 0;
+  ptrEl.style.transition = "";
+  ptrEl.style.transform = "";
+  ptrEl.style.opacity = "";
+  ptrEl.classList.remove("ready");
+}
+
+window.addEventListener(
+  "touchstart",
+  (e) => {
+    if (ptrBusy || e.touches.length !== 1 || docScrollTop() > 0) return;
+    ptrStartY = e.touches[0].clientY;
+    ptrPulling = true;
+    ptrDist = 0;
+    ptrEl.style.transition = "none"; // follow the finger without lag
+  },
+  { passive: true }
+);
+
+window.addEventListener(
+  "touchmove",
+  (e) => {
+    if (!ptrPulling) return;
+    const dy = e.touches[0].clientY - ptrStartY;
+    if (dy <= 0 || docScrollTop() > 0) {
+      resetPtr();
+      return;
+    }
+    ptrDist = Math.min(PTR_MAX, dy * 0.5); // resistance
+    ptrEl.style.transform = `translateY(${ptrDist - 44}px)`;
+    ptrEl.style.opacity = String(Math.min(1, ptrDist / PTR_THRESHOLD));
+    ptrEl.classList.toggle("ready", ptrDist >= PTR_THRESHOLD);
+    if (ptrDist > 4) e.preventDefault(); // suppress native scroll while pulling
+  },
+  { passive: false }
+);
+
+window.addEventListener("touchend", async () => {
+  if (!ptrPulling) return;
+  const trigger = ptrDist >= PTR_THRESHOLD;
+  ptrEl.style.transition = "";
+  if (!trigger) {
+    resetPtr();
+    return;
+  }
+  // Hold the spinner in view and spin while syncing.
+  ptrBusy = true;
+  ptrPulling = false;
+  ptrEl.classList.add("refreshing");
+  ptrEl.classList.remove("ready");
+  ptrEl.style.transform = `translateY(${PTR_THRESHOLD - 44}px)`;
+  ptrEl.style.opacity = "1";
+  try {
+    await runSync();
+  } finally {
+    ptrEl.classList.remove("refreshing");
+    ptrBusy = false;
+    resetPtr();
+  }
+});
 
 // ---- Boot ----
 

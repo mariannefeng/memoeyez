@@ -2,7 +2,7 @@
 // lives in localStorage (see store.js), so API responses are never cached — they go
 // network-first and simply fail when offline, which the app handles gracefully.
 
-const CACHE = "memoeyez-shell-v13";
+const CACHE = "memoeyez-shell-v14";
 const SHELL = [
   "/",
   "/index.html",
