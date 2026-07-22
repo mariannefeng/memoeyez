@@ -298,8 +298,9 @@ window.addEventListener("offline", () => setStatus("offline"));
 // (overscroll-behavior) so this is the only refresh gesture.
 
 const ptrEl = $("#ptr");
+const appEl = $("#app");
 const PTR_THRESHOLD = 64; // px of pull needed to trigger a refresh
-const PTR_MAX = 100; // px the spinner can travel
+const PTR_MAX = 100; // px the page can travel
 let ptrStartY = 0;
 let ptrDist = 0;
 let ptrPulling = false;
@@ -309,12 +310,20 @@ function docScrollTop() {
   return window.scrollY || document.documentElement.scrollTop || 0;
 }
 
+// Slide the whole page down by `dist` and reveal the spinner in the gap above it.
+function setPtr(dist, animate) {
+  const t = animate ? "" : "none";
+  appEl.style.transition = t;
+  ptrEl.style.transition = t;
+  appEl.style.transform = dist ? `translateY(${dist}px)` : "";
+  ptrEl.style.transform = dist ? `translateY(${dist - 44}px)` : "";
+  ptrEl.style.opacity = dist ? String(Math.min(1, dist / PTR_THRESHOLD)) : "";
+}
+
 function resetPtr() {
   ptrPulling = false;
   ptrDist = 0;
-  ptrEl.style.transition = "";
-  ptrEl.style.transform = "";
-  ptrEl.style.opacity = "";
+  setPtr(0, true); // animate back up
   ptrEl.classList.remove("ready");
 }
 
@@ -325,7 +334,6 @@ window.addEventListener(
     ptrStartY = e.touches[0].clientY;
     ptrPulling = true;
     ptrDist = 0;
-    ptrEl.style.transition = "none"; // follow the finger without lag
   },
   { passive: true }
 );
@@ -340,8 +348,7 @@ window.addEventListener(
       return;
     }
     ptrDist = Math.min(PTR_MAX, dy * 0.5); // resistance
-    ptrEl.style.transform = `translateY(${ptrDist - 44}px)`;
-    ptrEl.style.opacity = String(Math.min(1, ptrDist / PTR_THRESHOLD));
+    setPtr(ptrDist, false); // follow the finger, no transition lag
     ptrEl.classList.toggle("ready", ptrDist >= PTR_THRESHOLD);
     if (ptrDist > 4) e.preventDefault(); // suppress native scroll while pulling
   },
@@ -351,18 +358,16 @@ window.addEventListener(
 window.addEventListener("touchend", async () => {
   if (!ptrPulling) return;
   const trigger = ptrDist >= PTR_THRESHOLD;
-  ptrEl.style.transition = "";
   if (!trigger) {
     resetPtr();
     return;
   }
-  // Hold the spinner in view and spin while syncing.
+  // Hold the page open at the threshold and spin while syncing.
   ptrBusy = true;
   ptrPulling = false;
   ptrEl.classList.add("refreshing");
   ptrEl.classList.remove("ready");
-  ptrEl.style.transform = `translateY(${PTR_THRESHOLD - 44}px)`;
-  ptrEl.style.opacity = "1";
+  setPtr(PTR_THRESHOLD, true);
   try {
     await runSync();
   } finally {
