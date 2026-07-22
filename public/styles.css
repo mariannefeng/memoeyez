@@ -1,0 +1,311 @@
+:root {
+  --bg: #0e1510;
+  --surface: #18201a;
+  --surface-2: #232f26;
+  --text: #ecf1ec;
+  --muted: #9db09f;
+  --primary: #78BC61;
+  --primary-press: #5fa049;
+  --border: #2e3d33;
+  --again: #ef4444;
+  --hard: #f59e0b;
+  --good: #22c55e;
+  --easy: #38bdf8;
+  --radius: 16px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #eef6ea;
+    --surface: #ffffff;
+    --surface-2: #e5f1df;
+    --text: #1b2c1e;
+    --muted: #63735f;
+    --border: #dbe8d3;
+  }
+}
+
+* { box-sizing: border-box; }
+
+/* The `hidden` attribute must win over element display rules like flex/grid below,
+   otherwise hidden answers/buttons still render. */
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Top bar */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px calc(14px + env(safe-area-inset-top));
+  padding-top: max(14px, env(safe-area-inset-top));
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  line-height: 0;
+  color: var(--text);
+}
+
+.brand-logo {
+  height: 36px;
+  width: auto;
+  display: block;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  background: var(--surface-2);
+  padding: 4px;
+  border-radius: 999px;
+}
+
+.tab {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.tab[aria-current="true"] {
+  background: var(--primary);
+  color: #fff;
+}
+
+.sync {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex: none;
+}
+.sync.online { background: var(--good); }
+.sync.offline { background: var(--hard); }
+.sync.syncing { background: var(--easy); animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: 0.3; } }
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 16px calc(24px + env(safe-area-inset-bottom));
+}
+
+.view { display: block; }
+.view[hidden] { display: none; }
+
+.muted { color: var(--muted); font-size: 14px; }
+
+/* Buttons */
+.btn {
+  font: inherit;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.05s ease, filter 0.1s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--primary-press); }
+.btn-wide { width: 100%; }
+
+/* Study mode toggle (Due / All) */
+.study-modes {
+  display: flex;
+  gap: 4px;
+  background: var(--surface-2);
+  padding: 4px;
+  border-radius: 999px;
+  width: fit-content;
+  margin: 0 auto 24px; /* breathing room above the card */
+}
+.mode-btn {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  padding: 6px 20px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.mode-btn[aria-current="true"] {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* Study card */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.card-progress {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+
+.card-face {
+  font-size: 24px;
+  font-weight: 600;
+  text-align: center;
+  padding: 20px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  word-break: break-word;
+}
+
+.card-back {
+  border-top: 1px dashed var(--border);
+  color: var(--primary);
+}
+
+.card-actions { margin-top: auto; }
+
+.grades {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.grades .grade { padding: 14px 4px; }
+.grade[data-grade="again"] { border-color: var(--again); color: var(--again); }
+.grade[data-grade="hard"] { border-color: var(--hard); color: var(--hard); }
+.grade[data-grade="good"] { border-color: var(--good); color: var(--good); }
+.grade[data-grade="easy"] { border-color: var(--easy); color: var(--easy); }
+
+/* Empty state */
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+.empty p { margin: 4px 0; }
+
+/* Manage view */
+.add-form {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+@media (min-width: 520px) {
+  .add-form {
+    grid-template-columns: 1fr 1fr auto;
+  }
+}
+
+.input {
+  font: inherit;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+.input:focus {
+  outline: 2px solid var(--primary);
+  border-color: var(--primary);
+}
+
+.card-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.card-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.card-item .texts { flex: 1; min-width: 0; }
+.card-item .front { font-weight: 600; }
+.card-item .back { color: var(--muted); font-size: 14px; }
+.card-item .front, .card-item .back {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card-item .due {
+  font-size: 12px;
+  color: var(--muted);
+  flex: none;
+}
+
+.icon-btn {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 6px;
+  border-radius: 8px;
+  flex: none;
+}
+.icon-btn:hover { background: var(--surface-2); }
+.icon-btn.delete:hover, .icon-btn.cancel:hover { color: var(--again); }
+.icon-btn.edit:hover { color: var(--primary); }
+.icon-btn.save:hover { color: var(--good); }
+
+/* Inline edit fields in a manage row */
+.edit-fields {
+  display: grid;
+  gap: 6px;
+}
+.edit-fields .input {
+  padding: 8px 10px;
+  font-size: 15px;
+}

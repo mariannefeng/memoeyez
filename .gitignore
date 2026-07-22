@@ -1,0 +1,6 @@
+# Compiled server binary (produced by `go build`)
+/memoeyez
+
+# Local env / editor
+.env
+.DS_Store
