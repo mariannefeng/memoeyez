@@ -1,4 +1,4 @@
-# Memoeyez
+# memoeyez
 
 A super-simple flashcard app with spaced repetition. Works as a webapp and installs as a
 PWA for offline study on mobile. Plain HTML/CSS/JS frontend, small Go backend, your
