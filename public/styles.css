@@ -305,7 +305,7 @@ textarea.input {
   border-radius: 12px;
   padding: 12px 14px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
 }
 .card-item .texts { flex: 1; min-width: 0; }
